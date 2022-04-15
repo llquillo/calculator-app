@@ -55,7 +55,7 @@ class _CalculatorState extends State<Calculator> {
 
   void delete() {
     if (operations && answer != null) {
-      Navigator.pushAndRemoveUntil(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
             builder: (context) => Calculator(
@@ -65,9 +65,14 @@ class _CalculatorState extends State<Calculator> {
                   operations: false,
                   answer: null,
                 )),
-        (Route<dynamic> route) => false,
       );
     }
+    setState(() {
+      inputController = TextEditingController(text: null);
+    });
+  }
+
+  void deleteCurrent() {
     setState(() {
       inputController = TextEditingController(text: null);
     });
@@ -98,16 +103,23 @@ class _CalculatorState extends State<Calculator> {
     });
   }
 
+  void _setAnswerNull() {
+    setState(() {
+      inputController = TextEditingController(text: null);
+      this.answer = null;
+    });
+  }
+
   void runOperations() {
     if (this.operations) {
       _setY(inputController.text);
-      delete();
-      Navigator.pushAndRemoveUntil(
+      deleteCurrent();
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-            builder: (context) =>
-                Operations(operand: this.operand, x: this.x, y: this.y)),
-        (Route<dynamic> route) => false,
+          builder: (context) =>
+              Operations(operand: this.operand, x: this.x, y: this.y),
+        ),
       );
     }
   }
@@ -125,6 +137,7 @@ class _CalculatorState extends State<Calculator> {
               fontSize: 16,
               fontWeight: FontWeight.w700,
             )),
+        automaticallyImplyLeading: false,
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,
@@ -231,6 +244,11 @@ class _CalculatorState extends State<Calculator> {
                               _setX(inputController.text);
                               _setOperand(i);
                               delete();
+                            } else if (operations && answer != null) {
+                              _setX(answer.toString());
+                              _setY(null);
+                              _setOperand(i);
+                              _setAnswerNull();
                             }
                           },
                           child: Center(
@@ -278,7 +296,6 @@ class _CalculatorState extends State<Calculator> {
                             runOperations();
                             break;
                         }
-                        print(i);
                       },
                       child: Center(
                         child: Container(
