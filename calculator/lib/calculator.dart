@@ -1,15 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import './helper/operations.dart';
 
 class Calculator extends StatefulWidget {
+  final operand;
+  final x;
+  final y;
+  final answer;
+  final operations;
+  Calculator({
+    this.operand,
+    this.x,
+    this.y,
+    this.answer,
+    this.operations,
+  });
   @override
-  _CalculatorState createState() => _CalculatorState();
+  _CalculatorState createState() => _CalculatorState(
+        operand: this.operand,
+        x: this.x,
+        y: this.y,
+        operations: this.operations,
+        answer: this.answer,
+      );
 }
 
 class _CalculatorState extends State<Calculator> {
   List numberButtons = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, '.'];
   List operationButtons = ['+', '-', '*', "/"];
   List functionButtons = ['ce', '='];
+
+  var operand = '';
+  var x = '';
+  var y = '';
+
+  bool operations = false;
+
+  double answer;
+
+  _CalculatorState({
+    @required this.operand,
+    @required this.x,
+    @required this.y,
+    this.operations,
+    this.answer,
+  });
 
   TextEditingController inputController = new TextEditingController();
 
@@ -18,14 +53,100 @@ class _CalculatorState extends State<Calculator> {
     return currentString + number;
   }
 
+  void _setString(currentText) {
+    setState(() {
+      inputController = TextEditingController(text: currentText);
+    });
+  }
+
+  bool checkPeriod() {
+    String current = inputController.text;
+    bool state;
+    current.contains('.') ? state = false : state = true;
+    return state;
+  }
+
   void delete() {
+    if (operations && answer != null) {
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation1, animation2) => Calculator(
+            operand: null,
+            x: null,
+            y: null,
+            operations: false,
+            answer: null,
+          ),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
+      );
+    }
     setState(() {
       inputController = TextEditingController(text: null);
     });
   }
 
+  void deleteCurrent() {
+    setState(() {
+      inputController = TextEditingController(text: null);
+    });
+  }
+
+  void _setX(var x) {
+    setState(() {
+      this.x = x;
+    });
+  }
+
+  void _setY(var y) {
+    setState(() {
+      this.y = y;
+    });
+  }
+
+  void _setOperand(var operand) {
+    setState(() {
+      this.operand = operand;
+      this.operations = true;
+    });
+  }
+
+  void _setAnswer() {
+    setState(() {
+      inputController = TextEditingController(text: this.answer.toString());
+    });
+  }
+
+  void _setAnswerNull() {
+    setState(() {
+      inputController = TextEditingController(text: null);
+      this.answer = null;
+    });
+  }
+
+  void runOperations() {
+    if (this.operations) {
+      _setY(inputController.text);
+      deleteCurrent();
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation1, animation2) =>
+              Operations(operand: this.operand, x: this.x, y: this.y),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (operations && answer != null) {
+      _setAnswer();
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text("Calculator",
@@ -34,6 +155,7 @@ class _CalculatorState extends State<Calculator> {
               fontSize: 16,
               fontWeight: FontWeight.w700,
             )),
+        automaticallyImplyLeading: false,
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,
@@ -41,7 +163,35 @@ class _CalculatorState extends State<Calculator> {
         padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
         child: Column(
           children: [
-            SizedBox(height: MediaQuery.of(context).size.height / 16),
+            this.y == null
+                ? (this.x == null
+                    ? SizedBox(height: MediaQuery.of(context).size.height / 12)
+                    : Container(
+                        padding: EdgeInsets.fromLTRB(5, 5, 20, 5),
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height / 12,
+                        child: Text(
+                          '${this.x}\n${this.operand}',
+                          textAlign: TextAlign.right,
+                          style: GoogleFonts.robotoMono(
+                            color: Colors.black,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ))
+                : Container(
+                    padding: EdgeInsets.fromLTRB(5, 5, 20, 5),
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height / 12,
+                    child: Text(
+                      '${this.operand}\n${this.y}',
+                      textAlign: TextAlign.right,
+                      style: GoogleFonts.robotoMono(
+                        color: Colors.black,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
             Container(
               padding: EdgeInsets.fromLTRB(30, 10, 30, 10),
               child: TextFormField(
@@ -68,11 +218,13 @@ class _CalculatorState extends State<Calculator> {
                           onTap: () {
                             String numString = i.toString();
                             String currentText = addNumber(numString);
-                            setState(() {
-                              inputController =
-                                  TextEditingController(text: currentText);
-                            });
-                            print(i);
+                            if (i == '.') {
+                              if (checkPeriod()) {
+                                _setString(currentText);
+                              }
+                            } else {
+                              _setString(currentText);
+                            }
                           },
                           child: Center(
                             child: Container(
@@ -109,13 +261,16 @@ class _CalculatorState extends State<Calculator> {
                       ...operationButtons.map(
                         (i) => GestureDetector(
                           onTap: () {
-                            switch (i) {
-                              case '+': //add
-                              case '-': //subtract
-                              case '*': //multiply
-                              case '/': //divide
+                            if (!operations) {
+                              _setX(inputController.text);
+                              _setOperand(i);
+                              delete();
+                            } else if (operations && answer != null) {
+                              _setX(answer.toString());
+                              _setY(null);
+                              _setOperand(i);
+                              _setAnswerNull();
                             }
-                            print(i);
                           },
                           child: Center(
                             child: Container(
@@ -158,9 +313,10 @@ class _CalculatorState extends State<Calculator> {
                           case 'ce':
                             delete();
                             break;
-                          case '=': //call operation class
+                          case '=':
+                            runOperations();
+                            break;
                         }
-                        print(i);
                       },
                       child: Center(
                         child: Container(
