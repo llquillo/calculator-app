@@ -53,6 +53,19 @@ class _CalculatorState extends State<Calculator> {
     return currentString + number;
   }
 
+  void _setString(currentText) {
+    setState(() {
+      inputController = TextEditingController(text: currentText);
+    });
+  }
+
+  bool checkPeriod() {
+    String current = inputController.text;
+    bool state;
+    current.contains('.') ? state = false : state = true;
+    return state;
+  }
+
   void delete() {
     if (operations && answer != null) {
       Navigator.pushReplacement(
@@ -205,10 +218,13 @@ class _CalculatorState extends State<Calculator> {
                           onTap: () {
                             String numString = i.toString();
                             String currentText = addNumber(numString);
-                            setState(() {
-                              inputController =
-                                  TextEditingController(text: currentText);
-                            });
+                            if (i == '.') {
+                              if (checkPeriod()) {
+                                _setString(currentText);
+                              }
+                            } else {
+                              _setString(currentText);
+                            }
                           },
                           child: Center(
                             child: Container(
