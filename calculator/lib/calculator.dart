@@ -57,14 +57,17 @@ class _CalculatorState extends State<Calculator> {
     if (operations && answer != null) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-            builder: (context) => Calculator(
-                  operand: null,
-                  x: null,
-                  y: null,
-                  operations: false,
-                  answer: null,
-                )),
+        PageRouteBuilder(
+          pageBuilder: (context, animation1, animation2) => Calculator(
+            operand: null,
+            x: null,
+            y: null,
+            operations: false,
+            answer: null,
+          ),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
       );
     }
     setState(() {
@@ -116,9 +119,11 @@ class _CalculatorState extends State<Calculator> {
       deleteCurrent();
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) =>
+        PageRouteBuilder(
+          pageBuilder: (context, animation1, animation2) =>
               Operations(operand: this.operand, x: this.x, y: this.y),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
         ),
       );
     }
