@@ -30,7 +30,6 @@ class _OperationsState extends State<Operations> {
   });
 
   double calculate() {
-    print("here");
     switch (this.operand) {
       case '+':
         return double.parse(this.x) + double.parse(this.y);
@@ -41,12 +40,12 @@ class _OperationsState extends State<Operations> {
       case '/':
         return double.parse(this.x) / double.parse(this.y);
     }
+    return 0;
   }
 
   @override
   Widget build(BuildContext context) {
     double answer = calculate();
-    print(answer);
     return Calculator(
       operand: this.operand,
       x: '',
